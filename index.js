@@ -8,16 +8,16 @@ function renderUserList(data) {
   let rawHTML = ''
   data.forEach((user) => {
     rawHTML += `
-        <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+        <div class="col-6 col-md-4 col-lg-3 col-xl-2 overlay-container">
           <img
 src="${user.avatar}"
-            class="img-fluid mt-3 img-thumbnail overlay"
+            class="img-fluid mt-3 img-thumbnail"
             id="user-avatar"
             alt="user-avatar"
             data-bs-toggle="modal"
             data-bs-target="#staticBackdrop"
-data-id="${user.id}"
-          />
+data-id="${user.id}"/>
+<div class="overlay"></div>
 <h6 id="user-name" class="mt-2">${user.name + user.surname}</h6>
         </div>`
   })
