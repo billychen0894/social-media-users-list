@@ -1,9 +1,11 @@
 const BASE_URL = 'https://lighthouse-user-api.herokuapp.com/'
 const INDEX_URL = BASE_URL + 'api/v1/users/'
+const USERS_PER_PAGE = 24
 const userListPanel = document.getElementById('user-list')
 const searchForm = document.getElementById('searchForm')
 const searchInput = document.getElementById('searchInput')
 const addToFriendsBtn = document.getElementById('btn-addToFriends')
+const paginator = document.getElementById('paginator')
 
 const userList = []
 let filteredUserList = []
@@ -24,6 +26,15 @@ function renderUserList(data) {
         </div>`
   })
   userListPanel.innerHTML = rawHTML
+}
+
+// Extract userList data for its corresponding pages
+function usersPerPage(page) {
+  const data = filteredUserList.length ? filteredUserList : userList
+  const START_INDEX = (page - 1) * USERS_PER_PAGE
+  const END_INDEX = START_INDEX + USERS_PER_PAGE
+
+  return data.slice(START_INDEX, END_INDEX)
 }
 
 // Show user info
@@ -67,12 +78,35 @@ function addToFriends(id) {
   }
 }
 
+// render Paginator
+function renderPaginator(amount) {
+  let rawHTML = `
+      <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+          <a class="page-link" data-page="previous">Previous</a>
+        </li>`
+  const totalPage = Math.ceil(amount / USERS_PER_PAGE)
+
+  for (let page = 1; page <= totalPage; page++) {
+    rawHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${page}">${page}</a></li>`
+  }
+
+  rawHTML += `
+        <li class="page-item">
+          <a class="page-link" href="#" data-page="next">Next</a>
+        </li>
+      </ul>`
+
+  paginator.innerHTML = rawHTML
+}
+
 // GET request to get all users data and render all users
 axios
   .get(INDEX_URL)
   .then((response) => {
     userList.push(...response.data.results)
-    renderUserList(userList)
+    renderUserList(usersPerPage(1))
+    renderPaginator(userList.length)
   })
   .catch((error) => {
     console.log(error.message)
@@ -98,11 +132,27 @@ searchForm.addEventListener('submit', (event) => {
     const fullName = user.name + ' ' + user.surname
     return fullName.toLowerCase().includes(input)
   })
-  renderUserList(filteredUserList)
+  renderUserList(usersPerPage(1))
+  renderPaginator(filteredUserList.length)
 })
 
 // Add to Friends list
 addToFriendsBtn.addEventListener('click', (event) => {
   const userId = event.target.dataset.id
   addToFriends(Number(userId))
+})
+
+// To render its corresponding users list by page number and add class `active`
+paginator.addEventListener('click', (event) => {
+  const target = event.target
+  if (target.tagName !== 'A') return
+
+  target.classList.add('active')
+  renderUserList(usersPerPage(Number(target.dataset.page)))
+})
+
+// To remove class `active` when lost focus
+paginator.addEventListener('focusout', (event) => {
+  if (event.target.tagName !== 'A') return
+  event.target.classList.remove('active')
 })
