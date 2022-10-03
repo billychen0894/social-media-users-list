@@ -27,12 +27,13 @@
             </li>
           </ul>
         </div>
-        <form class="d-flex" role="search">
+        <form class="d-flex" role="search" id="searchForm">
           <input
             class="form-control me-2"
             type="search"
             placeholder="Search"
             aria-label="Search"
+            id="searchInput"
           />
           <button class="btn btn-outline-success" type="submit">Search</button>
         </form>
@@ -92,6 +93,14 @@
             </div>
           </div>
           <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+              id="btn-addToFriends"
+            >
+              Add
+            </button>
             <button
               type="button"
               class="btn btn-secondary"
