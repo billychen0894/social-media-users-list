@@ -142,17 +142,18 @@ addToFriendsBtn.addEventListener('click', (event) => {
   addToFriends(Number(userId))
 })
 
-// To render its corresponding users list by page number and add class `active`
+// To render its corresponding users list by page number and show current active page
 paginator.addEventListener('click', (event) => {
   const target = event.target
   if (target.tagName !== 'A') return
 
+  const pageLabel = paginator.querySelectorAll('A')
+  pageLabel.forEach((page) => {
+    if (page.classList.contains('active')) {
+      page.classList.remove('active')
+    }
+  })
   target.classList.add('active')
-  renderUserList(usersPerPage(Number(target.dataset.page)))
-})
 
-// To remove class `active` when lost focus
-paginator.addEventListener('focusout', (event) => {
-  if (event.target.tagName !== 'A') return
-  event.target.classList.remove('active')
+  renderUserList(usersPerPage(Number(target.dataset.page)))
 })

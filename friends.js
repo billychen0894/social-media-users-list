@@ -1,7 +1,9 @@
 const BASE_URL = 'https://lighthouse-user-api.herokuapp.com/'
 const INDEX_URL = BASE_URL + 'api/v1/users/'
+const USERS_PER_PAGE = 24
 const userListPanel = document.getElementById('user-list')
 const removeFriendsBtn = document.getElementById('btn-remove-friends')
+const paginator = document.getElementById('paginator')
 
 const userList = []
 let friendList = JSON.parse(localStorage.getItem('friendsList')) || []
@@ -22,6 +24,37 @@ function renderUserList(data) {
         </div>`
   })
   userListPanel.innerHTML = rawHTML
+}
+
+// Extract userList data for its corresponding pages
+function usersPerPage(page) {
+  const list = JSON.parse(localStorage.getItem('friendsList')) || []
+  const START_INDEX = (page - 1) * USERS_PER_PAGE
+  const END_INDEX = START_INDEX + USERS_PER_PAGE
+
+  return list.slice(START_INDEX, END_INDEX)
+}
+
+// render Paginator
+function renderPaginator(amount) {
+  let rawHTML = `
+      <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+          <a class="page-link" data-page="previous">Previous</a>
+        </li>`
+  const totalPage = Math.ceil(amount / USERS_PER_PAGE)
+
+  for (let page = 1; page <= totalPage; page++) {
+    rawHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${page}">${page}</a></li>`
+  }
+
+  rawHTML += `
+        <li class="page-item">
+          <a class="page-link" href="#" data-page="next">Next</a>
+        </li>
+      </ul>`
+
+  paginator.innerHTML = rawHTML
 }
 
 // Show user info
@@ -59,9 +92,10 @@ function removeFriends(id) {
   if (!list || !list.length) return
 
   const filteredFriends = list.filter((friend) => friend.id !== id)
-
   localStorage.setItem('friendsList', JSON.stringify(filteredFriends))
-  renderUserList(filteredFriends)
+
+  renderUserList(usersPerPage(1))
+  renderPaginator(filteredFriends.length)
 }
 
 // GET request to get all users data and render friends
@@ -69,7 +103,8 @@ axios
   .get(INDEX_URL)
   .then((response) => {
     userList.push(...response.data.results)
-    renderUserList(friendList)
+    renderUserList(usersPerPage(1))
+    renderPaginator(friendList.length)
   })
   .catch((error) => {
     console.log(error.message)
@@ -87,4 +122,20 @@ userListPanel.addEventListener('click', (event) => {
 removeFriendsBtn.addEventListener('click', (event) => {
   const userId = event.target.dataset.id
   removeFriends(Number(userId))
+})
+
+// To render its corresponding users list by page number and show current active page
+paginator.addEventListener('click', (event) => {
+  const target = event.target
+  if (target.tagName !== 'A') return
+
+  const pageLabel = paginator.querySelectorAll('A')
+  pageLabel.forEach((page) => {
+    if (page.classList.contains('active')) {
+      page.classList.remove('active')
+    }
+  })
+  target.classList.add('active')
+
+  renderUserList(usersPerPage(Number(target.dataset.page)))
 })
